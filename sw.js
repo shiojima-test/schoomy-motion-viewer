@@ -1,5 +1,5 @@
 // スクーミー 動きの波形 v1.1 — 一度開けば、ネットなしでも動くようにする
-const CACHE='motion-viewer-v1.1';
+const CACHE='motion-viewer-v1.3';
 const FILES=['./','index.html','lib/xlsx.full.min.js','img/logo.png','img/icon-180.png','manifest.webmanifest'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
