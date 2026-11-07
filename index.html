@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#2d3439">
 <link rel="apple-touch-icon" href="img/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>動きの波形 v1.3｜スクーミー</title>
+<title>動きの波形 v1.4｜スクーミー</title>
 <style>
 :root{
   --teal:#3AABA8;--cream:#F5E4C4;--orange:#E88A0A;--blue:#2E8EC4;--dark:#2d3439;--navy:#1a3a5c;
@@ -79,7 +79,7 @@ input.t:focus,select.t:focus,textarea.t:focus{outline:none;border-color:var(--te
 .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;margin-top:12px}
 .sc{border-radius:12px;padding:10px 14px;background:#f7f9fa;border-left:8px solid #999}
 .sc .n{font-weight:700;font-size:17px}
-.sc .v{display:flex;gap:18px;margin-top:4px}
+.sc .v{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:4px}
 .sc .v div{font-size:13px;color:var(--sub)}
 .sc .v b{display:block;white-space:nowrap;font-size:24px;color:var(--ink);line-height:1.2}
 .peaks{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
@@ -99,12 +99,13 @@ table.sum td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;color:var(--sub);margin-top:8px}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .legend i{width:22px;height:4px;border-radius:2px;display:inline-block}
+#pkTbl{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr));gap:14px;margin-top:14px}.pkt{min-width:0}.pkt .n{font-weight:700;margin-bottom:6px}.tw{overflow:auto;max-height:340px;border-radius:10px;border:1px solid var(--line)}.tw table.sum{font-size:15px}.tw table.sum th{position:sticky;top:0}#pkTbl tr[data-i]{cursor:pointer}#pkTbl tr.on td{background:#fff4e3}
 @media (max-width:860px){nav button{font-size:15px}nav button b{display:none}.files{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header>
-  <h1>動きの波形<span class="ver">v1.3</span></h1>
+  <h1>動きの波形<span class="ver">v1.4</span></h1>
   <div class="st" id="netst">確認中</div>
 </header>
 <div class="bar"><i></i><i></i><i></i><i></i></div>
@@ -120,7 +121,7 @@ table.sum td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:
   <h2>だれが、どこにつけたか</h2>
   <p class="lead">先にセットの記号と名前を入れておくと、ファイルを入れたときに自動で名前が付きます。</p>
   <div class="row">
-    <label class="f" style="flex:2;min-width:260px">練習の名前<input class="t" id="sTitle" placeholder="例：押原中学校 ソフトボール部"></label>
+    <label class="f" style="flex:2;min-width:260px">練習の名前<input class="t" id="sTitle" placeholder="例：ソフトボール部 11月の練習"></label>
     <label class="f" style="flex:1;min-width:180px">日付<input class="t" id="sDate" type="date"></label>
   </div>
   <table class="ppl">
@@ -156,7 +157,7 @@ table.sum td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:
 <!-- 3 波形 -->
 <section class="page" id="p3">
   <div class="toolbar">
-    <div class="grp"><span>見るもの</span><div class="seg" id="segMetric"><button data-v="a" class="on">動きの強さ</button><button data-v="w">回転の速さ</button><button data-v="axis">向きごと</button></div></div>
+    <div class="grp"><span>見るもの</span><div class="seg" id="segMetric"><button data-v="a" class="on">動きの強さ</button><button data-v="w">回転の速さ</button><button data-v="axis">強さの向きごと</button><button data-v="gaxis">回転の向きごと</button></div></div>
     <div class="grp"><span>見せ方</span><div class="seg" id="segMode"><button data-v="over" class="on">重ねる</button><button data-v="stack">並べる</button></div></div>
     <div class="grp"><span>時間</span><div class="seg" id="segAlign"><button data-v="peak" class="on">山にそろえる</button><button data-v="all">全部</button></div></div>
     <div class="grp" id="winGrp"><span>山の前後</span><div class="seg" id="segWin"><button data-v="0.5">0.5秒</button><button data-v="1" class="on">1秒</button><button data-v="2">2秒</button></div></div>
@@ -167,7 +168,8 @@ table.sum td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:
   </div>
   <div class="legend" id="legend"></div>
   <div class="stats" id="stats"></div>
-  <div class="note" id="howto">「山」は、強さが一番大きくなった瞬間です（スイングならバットを振り切るところ、送球なら投げる瞬間）。山の番号をタップすると、その山にそろえて重ねます。指でなぞると左右に動き、2本指で広げると拡大します。</div>
+  <div id="pkTbl"></div>
+  <div class="note" id="howto">「山」は、強さが一番大きくなった瞬間です（スイングならバットを振り切るところ、送球なら投げる瞬間）。「スイング時間」は、回転が上がり始めてから一番速くなるまでの時間です。「運動量」は、加速度の変化を足し合わせた、どれだけ動いたかの目安です。一覧の行をタップすると、その山にそろえて重ねます。山の番号をタップすると、その山にそろえて重ねます。指でなぞると左右に動き、2本指で広げると拡大します。</div>
 </section>
 
 <!-- 4 まとめ -->
@@ -191,7 +193,7 @@ table.sum td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:
 <script src="lib/xlsx.full.min.js"></script>
 <script>
 'use strict';
-const VERSION='1.1';
+const VERSION='1.4';
 const COLORS=['#3AABA8','#E88A0A','#2E8EC4','#1a3a5c','#C2457A','#6A9A2E','#7A5FB5','#8a6d3b','#d64541','#4b5b66'];
 const PARTS=['手首','腰','足首','腕','バット','グローブ','その他'];
 const MOTIONS=['スイング','送球','走る','捕球','その他'];
@@ -297,7 +299,9 @@ function findPeaks(f,thr,gap){
 function stat(f){
   const thr=+$('#thr').value||2;let amax=0,wmax=0;for(let i=0;i<f.am.length;i++){if(f.am[i]>amax)amax=f.am[i];if(f.wm[i]>wmax)wmax=f.wm[i]}
   const pk=findPeaks(f,thr,0.5);let avg=0;pk.forEach(i=>avg+=f.am[i]);avg=pk.length?avg/pk.length:0;
-  return {dur:f.t[f.t.length-1],amax,wmax,pk,avg};
+  const sw=pk.map(i=>swingT(f,i)).filter(v=>v!=null);const swAvg=sw.length?sw.reduce((a,b)=>a+b,0)/sw.length:null;
+  const ld=load(f);const dur=f.t[f.t.length-1];
+  return {dur,amax,wmax,pk,avg,swAvg,load:ld,loadMin:dur>0?ld/dur*60:0};
 }
 function candidate(f){const s=stat(f);const why=[];if(s.dur<5)why.push('記録が短い（'+s.dur.toFixed(1)+'秒）');if(s.amax<1.5)why.push('大きな動きがない（最大'+s.amax.toFixed(1)+'G）');return why}
 
@@ -382,7 +386,7 @@ function series(f){ // 表示する系列（時間をずらす量 off）
   const s=stat(f);let off=0;
   if(V.align==='peak'){let pi=V.pick[f.id];if(pi==null||!s.pk.includes(pi)){pi=s.pk.length?s.pk.reduce((a,b)=>f.am[b]>f.am[a]?b:a,s.pk[0]):(()=>{let b=0;for(let i=0;i<f.am.length;i++)if(f.am[i]>f.am[b])b=i;return b})()}off=f.t[pi];V.pick[f.id]=pi}
   let ys,names;
-  if(V.metric==='a'){ys=[f.am];names=['強さ']}else if(V.metric==='w'){ys=[f.wm];names=['回転']}else{ys=[f.ax,f.ay,f.az];names=['前後','左右','上下']}
+  if(V.metric==='a'){ys=[f.am];names=['強さ']}else if(V.metric==='w'){ys=[f.wm];names=['回転']}else if(V.metric==='gaxis'){ys=[f.gx,f.gy,f.gz];names=['x回り','y回り','z回り']}else{ys=[f.ax,f.ay,f.az];names=['前後','左右','上下']}
   return {f,off,ys,names,s};
 }
 const cv=$('#cv'),cw=$('#cw');
@@ -392,20 +396,20 @@ function draw(){
   const per=stack?Math.max(150,Math.min(240,Math.floor((window.innerHeight-330)/sel.length))):Math.max(360,Math.min(560,window.innerHeight-330));
   const H=stack?per*sel.length+30:per;cv.width=W*r;cv.height=H*r;cv.style.height=H+'px';
   const x=cv.getContext('2d');x.setTransform(r,0,0,r,0,0);x.clearRect(0,0,W,H);
-  if(!sel.length){x.fillStyle='#5b6770';x.font='18px sans-serif';x.textAlign='center';x.fillText(active().length?'上の名前をタップすると、波形が出ます':'先に「2 ファイルを入れる」でSDカードのファイルを入れてください',W/2,H/2);$('#stats').innerHTML='';$('#legend').innerHTML='';return}
+  if(!sel.length){if($('#pkTbl'))$('#pkTbl').innerHTML='';x.fillStyle='#5b6770';x.font='18px sans-serif';x.textAlign='center';x.fillText(active().length?'上の名前をタップすると、波形が出ます':'先に「2 ファイルを入れる」でSDカードのファイルを入れてください',W/2,H/2);$('#stats').innerHTML='';$('#legend').innerHTML='';return}
   const S_=sel.map(series);
   // 時間の範囲
   let t0,t1;if(V.align==='peak'){t0=-V.win;t1=V.win}else{t0=0;t1=Math.max(...S_.map(s=>s.f.t[s.f.t.length-1]))}
   if(!V.view)V.view={a:t0,b:t1,full:[t0,t1]};const va=V.view.a,vb=V.view.b;
   // 縦の範囲（見えている所の最大）
-  const unit=V.metric==='w'?'度/秒':'G';
+  const isAx=V.metric==='axis'||V.metric==='gaxis';const unit=(V.metric==='w'||V.metric==='gaxis')?'度/秒':'G';
   const L=64,R=16;const pw=W-L-R;
   const panels=stack?S_.map(s=>[s]):[S_];
   panels.forEach((ps,pi)=>{
     const top=stack?pi*per+12:16,ph=(stack?per:H)-(stack?34:52);
-    let lo=0,hi=V.metric==='a'?2:V.metric==='w'?200:1;if(V.metric==='axis')lo=-1;
+    let lo=0,hi=V.metric==='a'?2:V.metric==='w'?200:V.metric==='gaxis'?200:1;if(isAx)lo=-hi;
     ps.forEach(s=>s.ys.forEach(y=>{const f=s.f;const i0=lb(f.t,va+s.off),i1=lb(f.t,vb+s.off);for(let i=i0;i<=i1&&i<y.length;i++){if(y[i]>hi)hi=y[i];if(y[i]<lo)lo=y[i]}}));
-    if(V.metric==='axis'){const m=Math.max(Math.abs(lo),hi);lo=-m;hi=m}
+    if(isAx){const m=Math.max(Math.abs(lo),hi);lo=-m;hi=m}
     hi=nice(hi*1.08);if(lo<0)lo=-nice(-lo*1.08);
     const X=t=>L+(t-va)/(vb-va)*pw,Y=v=>top+ph-(v-lo)/(hi-lo)*ph;
     // 目盛り
@@ -418,12 +422,12 @@ function draw(){
     x.save();x.beginPath();x.rect(L,top,pw,ph);x.clip();
     ps.forEach(s=>{const f=s.f;if(!f.fill)return;const i0=Math.max(0,lb(f.t,va+s.off)-1),i1=Math.min(f.t.length-1,lb(f.t,vb+s.off)+1);x.fillStyle='rgba(232,138,10,0.16)';
       for(let i=i0;i<=i1;i++){if(!f.fill[i])continue;let e=i;while(e+1<=i1&&f.fill[e+1])e++;const xa=X(f.t[Math.max(0,i-1)]-s.off),xb=X(f.t[Math.min(f.t.length-1,e+1)]-s.off);x.fillRect(xa,top,Math.max(3,xb-xa),ph);i=e}});
-    ps.forEach(s=>{const f=s.f;s.ys.forEach((y,yi)=>{x.strokeStyle=V.metric==='axis'?['#C2457A','#2E8EC4','#6A9A2E'][yi]:f.color;x.lineWidth=V.metric==='axis'?1.8:2.6;if(V.metric==='axis'&&!stack&&ps.length>1)x.globalAlpha=0.9;
+    ps.forEach(s=>{const f=s.f;s.ys.forEach((y,yi)=>{x.strokeStyle=isAx?['#C2457A','#2E8EC4','#6A9A2E'][yi]:f.color;x.lineWidth=isAx?1.8:2.6;if(isAx&&!stack&&ps.length>1)x.globalAlpha=0.9;
       x.beginPath();const i0=Math.max(0,lb(f.t,va+s.off)-1),i1=Math.min(y.length-1,lb(f.t,vb+s.off)+1);const n=i1-i0;
       if(n<=pw*2){for(let i=i0;i<=i1;i++){const px=X(f.t[i]-s.off),py=Y(y[i]);i===i0?x.moveTo(px,py):x.lineTo(px,py)}}
       else{let i=i0;for(let px=0;px<=pw;px++){const te=va+(px+1)/pw*(vb-va)+s.off;let mn=Infinity,mx=-Infinity,j=i;while(j<=i1&&f.t[j]<te){if(y[j]<mn)mn=y[j];if(y[j]>mx)mx=y[j];j++}if(j>i){if(px===0)x.moveTo(L+px,Y(mn));x.lineTo(L+px,Y(mn));x.lineTo(L+px,Y(mx))}i=j}}
       x.stroke();x.globalAlpha=1});
-      if(V.align==='all'&&V.metric!=='axis'){x.fillStyle=f.color;s.s.pk.forEach((pi_,k)=>{const tx=f.t[pi_];if(tx<va||tx>vb)return;const yv=V.metric==='a'?f.am[pi_]:f.wm[pi_];x.beginPath();x.arc(X(tx),Y(yv),5,0,7);x.fill()})}
+      if(V.align==='all'&&!isAx){x.fillStyle=f.color;s.s.pk.forEach((pi_,k)=>{const tx=f.t[pi_];if(tx<va||tx>vb)return;const yv=V.metric==='a'?f.am[pi_]:f.wm[pi_];x.beginPath();x.arc(X(tx),Y(yv),5,0,7);x.fill()})}
     });
     x.restore();
     if(stack){x.textAlign='left';x.fillStyle=ps[0].f.color;x.font='bold 15px sans-serif';x.fillText(label(ps[0].f),L+8,top+10);x.font='13px sans-serif'}
@@ -432,14 +436,29 @@ function draw(){
   });
   // 凡例と数値
   const anyFill=S_.some(s=>s.f.fill&&s.f.fill.some(v=>v));
-  $('#legend').innerHTML=(anyFill?'<span><i style="background:rgba(232,138,10,0.35)"></i>オレンジの帯＝センサーの上限（16G・2000度/秒）を超えた所。前後の形から補完しています</span>':'')+(V.metric==='axis'?'<span><i style="background:#C2457A"></i>前後（x）</span><span><i style="background:#2E8EC4"></i>左右（y）</span><span><i style="background:#6A9A2E"></i>上下（z）</span><span>※ 向きは、センサーの貼り方で変わります</span>':'');
+  $('#legend').innerHTML=(anyFill?'<span><i style="background:rgba(232,138,10,0.35)"></i>オレンジの帯＝センサーの上限（16G・2000度/秒）を超えた所。前後の形から補完しています</span>':'')+(V.metric==='gaxis'?'<span><i style="background:#C2457A"></i>x回り</span><span><i style="background:#2E8EC4"></i>y回り</span><span><i style="background:#6A9A2E"></i>z回り</span><span>※ 回る向きの軸は、センサーの貼り方で変わります</span>':'')+(V.metric==='axis'?'<span><i style="background:#C2457A"></i>前後（x）</span><span><i style="background:#2E8EC4"></i>左右（y）</span><span><i style="background:#6A9A2E"></i>上下（z）</span><span>※ 向きは、センサーの貼り方で変わります</span>':'');
   $('#stats').innerHTML=S_.map(s=>{const f=s.f,pk=s.s.pk;const pi=V.pick[f.id];const curA=pi!=null?f.am[pi]:s.s.amax,curW=pi!=null?f.wm[pi]:s.s.wmax;
     return `<div class="sc" style="border-left-color:${f.color}"><div class="n">${esc(label(f))}<span class="meta" style="font-weight:400;color:var(--sub);font-size:13px">　${esc(person(f)?.part||'')}${f.motion?'・'+esc(f.motion):''}</span></div>
-     <div class="v"><div>${V.align==='peak'?'この山の強さ':'一番の強さ'}<b>${(V.align==='peak'?curA:s.s.amax).toFixed(1)} G</b></div><div>${V.align==='peak'?'この山の回転':'一番の回転'}<b>${Math.round(V.align==='peak'?peakW(f,pi):s.s.wmax)} 度/秒</b></div><div>山の数<b>${pk.length} 回</b></div></div>
+     <div class="v"><div>${V.align==='peak'?'この山の強さ':'一番の強さ'}<b>${(V.align==='peak'?curA:s.s.amax).toFixed(1)} G</b></div><div>${V.align==='peak'?'この山の回転':'一番の回転'}<b>${Math.round(V.align==='peak'?peakW(f,pi):s.s.wmax)} 度/秒</b></div><div>山の数<b>${pk.length} 回</b></div><div>${V.align==='peak'?'この山のスイング時間':'スイング時間の平均'}<b>${fmtSw(V.align==='peak'?swingT(f,pi):s.s.swAvg)}</b></div><div>運動量<b>${s.s.load.toFixed(1)}</b><small style="display:block;font-size:12px;color:var(--sub)">1分あたり ${s.s.loadMin.toFixed(1)}</small></div></div>
      ${V.align==='peak'&&pk.length?`<div class="meta" style="font-size:13px;color:var(--sub);margin-top:6px">強い山の上位${Math.min(12,pk.length)}（番号は記録の順・タップでそろえる）</div><div class="peaks">${pk.map((i,k)=>[i,k]).sort((a,b)=>f.am[b[0]]-f.am[a[0]]).slice(0,12).map(([i,k])=>`<button data-f="${f.id}" data-i="${i}" class="${i===pi?'on':''}">${k+1}番（${f.am[i].toFixed(1)}G）</button>`).join('')}</div>`:''}</div>`}).join('');
+  renderPeakTbl(S_);
 }
+/* スイング時間：山のまわり（前後0.15秒）で回転が一番速い所から時間をさかのぼり、
+   回転が「その山の2割」か「100度/秒」の大きいほうを下回った所を振り始めとする（さかのぼるのは1秒まで） */
+function swingT(f,pi){if(pi==null)return null;const a=lb(f.t,f.t[pi]-0.15),b=lb(f.t,f.t[pi]+0.15);let ip=a;for(let i=a;i<=b&&i<f.wm.length;i++)if(f.wm[i]>f.wm[ip])ip=i;
+  const th=Math.max(100,f.wm[ip]*0.2);if(f.wm[ip]<300)return null;let k=ip;while(k>0&&f.wm[k]>th&&f.t[ip]-f.t[k]<1)k--;if(f.t[ip]-f.t[k]>=1)return null;return f.t[ip]-f.t[k]}
+/* 運動量：1回ごとの加速度の変化（前後・左右・上下）の大きさを足し合わせて100で割る（スポーツで使われるプレーヤーロードと同じ考え方） */
+function load(f){let s=0;for(let i=1;i<f.ax.length;i++){const dx=f.ax[i]-f.ax[i-1],dy=f.ay[i]-f.ay[i-1],dz=f.az[i]-f.az[i-1];s+=Math.sqrt(dx*dx+dy*dy+dz*dz)}return s/100}
 function peakW(f,pi){if(pi==null)return 0;const a=lb(f.t,f.t[pi]-0.15),b=lb(f.t,f.t[pi]+0.15);let m=0;for(let i=a;i<=b&&i<f.wm.length;i++)if(f.wm[i]>m)m=f.wm[i];return m}
-$('#stats').onclick=e=>{const b=e.target.closest('.peaks button');if(!b)return;V.pick[+b.dataset.f]=+b.dataset.i;draw()};
+$('#stats').onclick=e=>{const b=e.target.closest('.peaks button');if(!b)return;V.pick[+b.dataset.f]=+b.dataset.i;V.align='peak';document.querySelectorAll('#segAlign button').forEach(x=>x.classList.toggle('on',x.dataset.v==='peak'));V.view=null;draw()};
+function renderPeakTbl(S_){
+  const el=$('#pkTbl');if(!el)return;if(!S_.length){el.innerHTML='';return}
+  el.innerHTML=S_.map(s=>{const f=s.f,pk=s.s.pk;if(!pk.length)return '';const pi=V.pick[f.id];
+    return `<div class="pkt"><div class="n" style="color:${f.color}">${esc(label(f))}　山ごとの一覧（${pk.length}回）</div><div class="tw"><table class="sum"><tr><th>番号</th><th style="text-align:right">時刻</th><th style="text-align:right">強さ</th><th style="text-align:right">回転</th><th style="text-align:right">スイング時間</th></tr>`+
+      pk.map((i,k)=>`<tr class="${i===pi?'on':''}" data-f="${f.id}" data-i="${i}"><td>${k+1}番</td><td class="num">${f.t[i].toFixed(2)} 秒</td><td class="num">${f.am[i].toFixed(1)} G</td><td class="num">${Math.round(peakW(f,i))} 度/秒</td><td class="num">${fmtSw(swingT(f,i))}</td></tr>`).join('')+'</table></div></div>'}).join('');
+}
+document.addEventListener('click',e=>{const tr=e.target.closest('#pkTbl tr[data-i]');if(!tr)return;V.pick[+tr.dataset.f]=+tr.dataset.i;V.align='peak';document.querySelectorAll('#segAlign button').forEach(x=>x.classList.toggle('on',x.dataset.v==='peak'));V.view=null;draw();$('#cw').scrollIntoView({behavior:'smooth',block:'start'})});
+function fmtSw(v){return v==null?'－':(v*1000).toFixed(0)+' ミリ秒'}
 function lb(a,v){let l=0,h=a.length-1;if(v<=a[0])return 0;if(v>=a[h])return h;while(l<h){const m=(l+h)>>1;a[m]<v?l=m+1:h=m}return l}
 function nice(v){if(v<=0)return 1;const e=Math.pow(10,Math.floor(Math.log10(v)));const m=v/e;return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*e}
 function step(r,n){return nice(r/n)}
@@ -458,12 +477,12 @@ let lastTap=0;cv.addEventListener('pointerup',()=>{const n=Date.now();if(n-lastT
 window.addEventListener('resize',()=>{if($('#p3').classList.contains('on'))draw();if($('#p4').classList.contains('on'))renderSum()});
 
 /* ---------- 4 まとめ ---------- */
-function rows(){return active().map(f=>{const s=stat(f),p=person(f);return {f,name:p?.name||'',set:f.board||p?.set||'',trial:f.trial||'',motion:f.motion||p?.motion||'',part:p?.part||'',dur:s.dur,n:s.pk.length,amax:s.amax,avg:s.avg,wmax:s.wmax}}).sort((a,b)=>(a.set+String(a.trial).padStart(3,'0')).localeCompare(b.set+String(b.trial).padStart(3,'0')))}
+function rows(){return active().map(f=>{const s=stat(f),p=person(f);return {f,name:p?.name||'',set:f.board||p?.set||'',trial:f.trial||'',motion:f.motion||p?.motion||'',part:p?.part||'',dur:s.dur,n:s.pk.length,amax:s.amax,avg:s.avg,wmax:s.wmax,sw:s.swAvg,load:s.load,loadMin:s.loadMin}}).sort((a,b)=>(a.set+String(a.trial).padStart(3,'0')).localeCompare(b.set+String(b.trial).padStart(3,'0')))}
 function renderSum(){
   const R=rows();const t=$('#sumTbl');
   if(!R.length){t.innerHTML='<tr><td class="empty">ファイルを入れると、ここにまとまります</td></tr>';$('#cvBar').style.height='0px';renderMemo();return}
-  t.innerHTML='<tr><th>セット</th><th>名前</th><th>回数</th><th>つけた場所</th><th>動き</th><th style="text-align:right">記録の長さ</th><th style="text-align:right">山の数</th><th style="text-align:right">一番の強さ</th><th style="text-align:right">山の平均の強さ</th><th style="text-align:right">一番の回転</th></tr>'+
-   R.map(r=>`<tr><td><span class="sw" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${r.f.color};margin-right:6px"></span>${esc(r.set)}</td><td>${esc(r.name)}</td><td>${r.trial?r.trial+'回目':''}</td><td>${esc(r.part)}</td><td>${esc(r.motion)}</td><td class="num">${fmtDur(r.dur)}</td><td class="num">${r.n}回</td><td class="num">${r.amax.toFixed(1)} G</td><td class="num">${r.avg?r.avg.toFixed(1)+' G':'－'}</td><td class="num">${Math.round(r.wmax)} 度/秒</td></tr>`).join('');
+  t.innerHTML='<tr><th>セット</th><th>名前</th><th>回数</th><th>つけた場所</th><th>動き</th><th style="text-align:right">記録の長さ</th><th style="text-align:right">山の数</th><th style="text-align:right">一番の強さ</th><th style="text-align:right">山の平均の強さ</th><th style="text-align:right">一番の回転</th><th style="text-align:right">スイング時間の平均</th><th style="text-align:right">運動量</th></tr>'+
+   R.map(r=>`<tr><td><span class="sw" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${r.f.color};margin-right:6px"></span>${esc(r.set)}</td><td>${esc(r.name)}</td><td>${r.trial?r.trial+'回目':''}</td><td>${esc(r.part)}</td><td>${esc(r.motion)}</td><td class="num">${fmtDur(r.dur)}</td><td class="num">${r.n}回</td><td class="num">${r.amax.toFixed(1)} G</td><td class="num">${r.avg?r.avg.toFixed(1)+' G':'－'}</td><td class="num">${Math.round(r.wmax)} 度/秒</td><td class="num">${fmtSw(r.sw)}</td><td class="num">${r.load.toFixed(1)}</td></tr>`).join('');
   // 横棒：一番の強さと山の平均
   const c=$('#cvBar'),r_=devicePixelRatio||1,W=c.parentElement.clientWidth,rowH=40,H=R.length*rowH+60;c.width=W*r_;c.height=H*r_;c.style.height=H+'px';const x=c.getContext('2d');x.setTransform(r_,0,0,r_,0,0);
   const L=200,pw=W-L-90,mx=nice(Math.max(2,...R.map(r=>r.amax)));x.font='15px sans-serif';x.textBaseline='middle';
@@ -487,12 +506,12 @@ function sheetName(f,used){let n=(shortLabel(f)+'_'+f.fname.replace(/\.csv$/i,''
 function makeBook(withData){
   const wb=XLSX.utils.book_new();const R=rows();const thr=$('#thr').value;
   const info=[['練習の名前',S.title||''],['日付',S.date||''],['山とみなす強さ',thr+'G以上（0.5秒以内の山は1つにまとめる）'],['作成','スクーミー 動きの波形 v'+VERSION],[],
-    ['セット','名前','回数','つけた場所','動き','ファイル','記録の長さ（秒）','山の数','一番の強さ（G）','山の平均の強さ（G）','一番の回転（度/秒）']];
-  R.forEach(r=>info.push([r.set,r.name,r.trial,r.part,r.motion,r.f.fname,+r.dur.toFixed(2),r.n,+r.amax.toFixed(2),r.avg?+r.avg.toFixed(2):'',Math.round(r.wmax)]));
-  const ws=XLSX.utils.aoa_to_sheet(info);ws['!cols']=[8,14,6,10,10,14,14,8,14,16,16].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws,'まとめ');
+    ['セット','名前','回数','つけた場所','動き','ファイル','記録の長さ（秒）','山の数','一番の強さ（G）','山の平均の強さ（G）','一番の回転（度/秒）','スイング時間の平均（ミリ秒）','運動量','1分あたりの運動量']];
+  R.forEach(r=>info.push([r.set,r.name,r.trial,r.part,r.motion,r.f.fname,+r.dur.toFixed(2),r.n,+r.amax.toFixed(2),r.avg?+r.avg.toFixed(2):'',Math.round(r.wmax),r.sw==null?'':Math.round(r.sw*1000),+r.load.toFixed(2),+r.loadMin.toFixed(2)]));
+  const ws=XLSX.utils.aoa_to_sheet(info);ws['!cols']=[8,14,6,10,10,14,14,8,14,16,16,18,10,14].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws,'まとめ');
   // 山の一覧
-  const pk=[['セット','名前','回数','ファイル','山の番号','時刻（秒）','強さ（G）','回転（度/秒）']];
-  R.forEach(r=>stat(r.f).pk.forEach((i,k)=>pk.push([r.set,r.name,r.trial,r.f.fname,k+1,+r.f.t[i].toFixed(2),+r.f.am[i].toFixed(2),Math.round(peakW(r.f,i))])));
+  const pk=[['セット','名前','回数','ファイル','山の番号','時刻（秒）','強さ（G）','回転（度/秒）','スイング時間（ミリ秒）']];
+  R.forEach(r=>stat(r.f).pk.forEach((i,k)=>pk.push([r.set,r.name,r.trial,r.f.fname,k+1,+r.f.t[i].toFixed(2),+r.f.am[i].toFixed(2),Math.round(peakW(r.f,i)),(v=>v==null?'':Math.round(v*1000))(swingT(r.f,i))])));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(pk),'山の一覧');
   const memo=[['だれ・どこ','気づいたこと・次の練習で変えること']];Object.keys(S.memo).forEach(k=>{if(!S.memo[k])return;const p=S.people.find(p=>p.id===k);memo.push([k==='group'?'グループ全体':p?(p.set+' '+(p.name||'')):k,S.memo[k]])});
   const wm=XLSX.utils.aoa_to_sheet(memo);wm['!cols']=[{wch:18},{wch:70}];XLSX.utils.book_append_sheet(wb,wm,'メモ');
