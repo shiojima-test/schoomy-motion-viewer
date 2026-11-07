@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#2d3439">
 <link rel="apple-touch-icon" href="img/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>動きの波形 v1.4｜スクーミー</title>
+<title>動きの波形 v1.5｜スクーミー</title>
 <style>
 :root{
   --teal:#3AABA8;--cream:#F5E4C4;--orange:#E88A0A;--blue:#2E8EC4;--dark:#2d3439;--navy:#1a3a5c;
@@ -100,12 +100,27 @@ table.sum td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .legend i{width:22px;height:4px;border-radius:2px;display:inline-block}
 #pkTbl{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr));gap:14px;margin-top:14px}.pkt{min-width:0}.pkt .n{font-weight:700;margin-bottom:6px}.tw{overflow:auto;max-height:340px;border-radius:10px;border:1px solid var(--line)}.tw table.sum{font-size:15px}.tw table.sum th{position:sticky;top:0}#pkTbl tr[data-i]{cursor:pointer}#pkTbl tr.on td{background:#fff4e3}
+.p3main{display:block}
+@media (min-width:1000px){.p3main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,30%);gap:14px;align-items:start}
+ .p3r{max-height:calc(100vh - 150px);overflow:auto;position:sticky;top:8px;padding-right:2px}
+ .p3r .stats{grid-template-columns:1fr;margin-top:0}
+ #pkTbl{grid-template-columns:1fr}
+ .p3r .sc .v b{font-size:20px}
+ .p3r .peaks{display:none}
+ .tw{max-height:260px}
+ .p3r{position:static}
+ .p3r table.sum th,.p3r table.sum td{white-space:nowrap;padding:6px 7px;font-size:13px}
+ .p3r .sc>.meta{display:none}
+ #p3 .seg button{padding:6px 12px;min-height:38px;font-size:15px}
+ #p3 .chip{min-height:38px;padding:5px 12px;font-size:15px}
+ #p3 .toolbar{gap:10px 14px}}
+@media (min-width:1000px) and (max-height:900px){header{padding:6px 20px}header h1{font-size:18px}nav{padding-top:6px}nav button{min-height:46px;padding:8px}}
 @media (max-width:860px){nav button{font-size:15px}nav button b{display:none}.files{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header>
-  <h1>動きの波形<span class="ver">v1.4</span></h1>
+  <h1>動きの波形<span class="ver">v1.5</span></h1>
   <div class="st" id="netst">確認中</div>
 </header>
 <div class="bar"><i></i><i></i><i></i><i></i></div>
@@ -161,15 +176,16 @@ table.sum td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:
     <div class="grp"><span>見せ方</span><div class="seg" id="segMode"><button data-v="over" class="on">重ねる</button><button data-v="stack">並べる</button></div></div>
     <div class="grp"><span>時間</span><div class="seg" id="segAlign"><button data-v="peak" class="on">山にそろえる</button><button data-v="all">全部</button></div></div>
     <div class="grp" id="winGrp"><span>山の前後</span><div class="seg" id="segWin"><button data-v="0.5">0.5秒</button><button data-v="1" class="on">1秒</button><button data-v="2">2秒</button></div></div>
+    <div class="grp"><span>比べるファイル（タップで出す・消す）</span><div class="chips" id="selChips"></div></div>
   </div>
-  <div class="grp" style="margin-bottom:10px"><span style="font-size:13px;color:var(--sub);font-weight:600">比べるファイル（タップで出す・消す）</span><div class="chips" id="selChips" style="margin-top:4px"></div></div>
+
+  <div class="p3main"><div class="p3l">
   <div class="chartwrap" id="cw"><canvas id="cv"></canvas>
     <div class="zoom"><button id="zin">＋</button><button id="zout">－</button><button class="w" id="zfit">全体</button></div>
   </div>
   <div class="legend" id="legend"></div>
-  <div class="stats" id="stats"></div>
-  <div id="pkTbl"></div>
   <div class="note" id="howto">「山」は、強さが一番大きくなった瞬間です（スイングならバットを振り切るところ、送球なら投げる瞬間）。「スイング時間」は、回転が上がり始めてから一番速くなるまでの時間です。「運動量」は、加速度の変化を足し合わせた、どれだけ動いたかの目安です。一覧の行をタップすると、その山にそろえて重ねます。山の番号をタップすると、その山にそろえて重ねます。指でなぞると左右に動き、2本指で広げると拡大します。</div>
+  </div><div class="p3r" id="side"><div class="stats" id="stats"></div><div id="pkTbl"></div></div></div>
 </section>
 
 <!-- 4 まとめ -->
@@ -193,7 +209,7 @@ table.sum td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:
 <script src="lib/xlsx.full.min.js"></script>
 <script>
 'use strict';
-const VERSION='1.4';
+const VERSION='1.5';
 const COLORS=['#3AABA8','#E88A0A','#2E8EC4','#1a3a5c','#C2457A','#6A9A2E','#7A5FB5','#8a6d3b','#d64541','#4b5b66'];
 const PARTS=['手首','腰','足首','腕','バット','グローブ','その他'];
 const MOTIONS=['スイング','送球','走る','捕球','その他'];
@@ -393,7 +409,7 @@ const cv=$('#cv'),cw=$('#cw');
 function draw(){
   const sel=active().filter(f=>V.sel.has(f.id));
   const r=devicePixelRatio||1,W=cw.clientWidth;const stack=V.mode==='stack'&&sel.length>1;
-  const per=stack?Math.max(150,Math.min(240,Math.floor((window.innerHeight-330)/sel.length))):Math.max(360,Math.min(560,window.innerHeight-330));
+  const wide=window.innerWidth>=1000,top_=cw.getBoundingClientRect().top+window.scrollY,room=wide?window.innerHeight-top_-58:window.innerHeight-330;if(wide){const sd=$('#side');sd.style.maxHeight=Math.max(300,window.innerHeight-top_-12)+'px'}const per=stack?Math.max(130,Math.min(240,Math.floor(room/sel.length))):Math.max(260,Math.min(620,room));
   const H=stack?per*sel.length+30:per;cv.width=W*r;cv.height=H*r;cv.style.height=H+'px';
   const x=cv.getContext('2d');x.setTransform(r,0,0,r,0,0);x.clearRect(0,0,W,H);
   if(!sel.length){if($('#pkTbl'))$('#pkTbl').innerHTML='';x.fillStyle='#5b6770';x.font='18px sans-serif';x.textAlign='center';x.fillText(active().length?'上の名前をタップすると、波形が出ます':'先に「2 ファイルを入れる」でSDカードのファイルを入れてください',W/2,H/2);$('#stats').innerHTML='';$('#legend').innerHTML='';return}
