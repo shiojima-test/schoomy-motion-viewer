@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#2d3439">
 <link rel="apple-touch-icon" href="img/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>動きの波形 v1.5｜スクーミー</title>
+<title>動きの波形 v1.6｜スクーミー</title>
 <style>
 :root{
   --teal:#3AABA8;--cream:#F5E4C4;--orange:#E88A0A;--blue:#2E8EC4;--dark:#2d3439;--navy:#1a3a5c;
@@ -120,7 +120,7 @@ table.sum td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:
 </head>
 <body>
 <header>
-  <h1>動きの波形<span class="ver">v1.5</span></h1>
+  <h1>動きの波形<span class="ver">v1.6</span></h1>
   <div class="st" id="netst">確認中</div>
 </header>
 <div class="bar"><i></i><i></i><i></i><i></i></div>
@@ -193,10 +193,11 @@ table.sum td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:
   <h2>まとめ</h2>
   <p class="lead">大きな動きの「山」の数と強さです。グループで見て、次の練習で変えることを書いておきましょう。</p>
   <div class="row" style="margin-bottom:12px">
-    <label class="f">山とみなす強さ<select class="t" id="thr"><option value="1.5">1.5G以上</option><option value="2" selected>2G以上</option><option value="3">3G以上</option><option value="4">4G以上</option></select></label>
+    <label class="f">山とみなす強さ<select class="t" id="thr"><option value="1.5">1.5G以上</option><option value="2" selected>2G以上</option><option value="3">3G以上</option><option value="4">4G以上</option><option value="6">6G以上</option><option value="10">10G以上（バットの先）</option></select></label>
     <button class="btn navy big" id="xlsSum" style="margin-left:auto">Excelで出す（まとめ）</button>
     <button class="btn big" id="xlsAll">Excelで出す（波形の数値も）</button>
   </div>
+  <div class="note" style="margin:0 0 12px">バットの先に付けると、構え直しやバットを渡すときの小さな動きも2〜8Gの山になります。バットの先のときは「10G以上（バットの先）」にすると、素振りの山だけが残ります（振り終わりの減速と分かれないように、1.2秒以内の山は1つにまとめます）。</div>
   <div style="overflow-x:auto"><table class="sum" id="sumTbl"></table></div>
   <div class="chartwrap" style="margin-top:14px;touch-action:auto"><canvas id="cvBar"></canvas></div>
   <h2 style="margin-top:22px">気づいたこと・次の練習で変えること</h2>
@@ -209,7 +210,7 @@ table.sum td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:
 <script src="lib/xlsx.full.min.js"></script>
 <script>
 'use strict';
-const VERSION='1.5';
+const VERSION='1.6';
 const COLORS=['#3AABA8','#E88A0A','#2E8EC4','#1a3a5c','#C2457A','#6A9A2E','#7A5FB5','#8a6d3b','#d64541','#4b5b66'];
 const PARTS=['手首','腰','足首','腕','バット','グローブ','その他'];
 const MOTIONS=['スイング','送球','走る','捕球','その他'];
@@ -306,6 +307,8 @@ function quadFit(xs,ys){ // 最小二乗で y=a x^2+b x+c
   for(let a=0;a<3;a++){let p=a;for(let r=a+1;r<3;r++)if(Math.abs(M[r][a])>Math.abs(M[p][a]))p=r;[M[a],M[p]]=[M[p],M[a]];if(Math.abs(M[a][a])<1e-12)return null;
     for(let r=0;r<3;r++)if(r!==a){const f=M[r][a]/M[a][a];for(let q=a;q<4;q++)M[r][q]-=f*M[a][q]}}
   return [M[0][3]/M[0][0],M[1][3]/M[1][1],M[2][3]/M[2][2]]}
+/* 6G以上（バットの先など）は、振り終わりの減速も山になるので、1.2秒以内を1つにまとめる */
+function gapOf(thr){return thr>=6?1.2:0.5}
 function findPeaks(f,thr,gap){
   const a=f.am,t=f.t,out=[];let i=0;const n=a.length;
   while(i<n){if(a[i]>=thr){let j=i,best=i;while(j<n&&(a[j]>=thr*0.7||t[j]-t[best]<0.1)){if(a[j]>a[best])best=j;j++}
@@ -314,7 +317,7 @@ function findPeaks(f,thr,gap){
 }
 function stat(f){
   const thr=+$('#thr').value||2;let amax=0,wmax=0;for(let i=0;i<f.am.length;i++){if(f.am[i]>amax)amax=f.am[i];if(f.wm[i]>wmax)wmax=f.wm[i]}
-  const pk=findPeaks(f,thr,0.5);let avg=0;pk.forEach(i=>avg+=f.am[i]);avg=pk.length?avg/pk.length:0;
+  const pk=findPeaks(f,thr,gapOf(thr));let avg=0;pk.forEach(i=>avg+=f.am[i]);avg=pk.length?avg/pk.length:0;
   const sw=pk.map(i=>swingT(f,i)).filter(v=>v!=null);const swAvg=sw.length?sw.reduce((a,b)=>a+b,0)/sw.length:null;
   const ld=load(f);const dur=f.t[f.t.length-1];
   return {dur,amax,wmax,pk,avg,swAvg,load:ld,loadMin:dur>0?ld/dur*60:0};
@@ -476,8 +479,8 @@ function renderPeakTbl(S_){
 document.addEventListener('click',e=>{const tr=e.target.closest('#pkTbl tr[data-i]');if(!tr)return;V.pick[+tr.dataset.f]=+tr.dataset.i;V.align='peak';document.querySelectorAll('#segAlign button').forEach(x=>x.classList.toggle('on',x.dataset.v==='peak'));V.view=null;draw();$('#cw').scrollIntoView({behavior:'smooth',block:'start'})});
 function fmtSw(v){return v==null?'－':(v*1000).toFixed(0)+' ミリ秒'}
 function lb(a,v){let l=0,h=a.length-1;if(v<=a[0])return 0;if(v>=a[h])return h;while(l<h){const m=(l+h)>>1;a[m]<v?l=m+1:h=m}return l}
-function nice(v){if(v<=0)return 1;const e=Math.pow(10,Math.floor(Math.log10(v)));const m=v/e;return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*e}
-function step(r,n){return nice(r/n)}
+function nice(v){if(v<=0)return 1;const e=Math.pow(10,Math.floor(Math.log10(v)));const m=v/e;return (m<=1?1:m<=1.5?1.5:m<=2?2:m<=2.5?2.5:m<=3?3:m<=4?4:m<=5?5:m<=6?6:m<=8?8:10)*e}
+function step(r,n){const v=r/n;if(v<=0)return 1;const e=Math.pow(10,Math.floor(Math.log10(v)));const m=v/e;return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*e}
 function fmt(v){const a=Math.abs(v);return a>=100?Math.round(v):a>=10?(+v.toFixed(1)).toString():(+v.toFixed(2)).toString()}
 // 拡大・移動（指）
 function zoomAt(fx,k){if(!V.view)return;const a=V.view.a,b=V.view.b,c=a+(b-a)*fx;let na=c-(c-a)*k,nb=c+(b-c)*k;const [fa,fb]=V.view.full;const span=fb-fa;if(nb-na>span){na=fa;nb=fb}if(nb-na<0.2){const m=(na+nb)/2;na=m-0.1;nb=m+0.1}V.view.a=na;V.view.b=nb;draw()}
@@ -514,14 +517,14 @@ function renderMemo(){
   $('#memo').innerHTML=keys.map(k=>`<label class="f">${esc(k.t)}<textarea class="t" data-m="${k.k}" placeholder="例：振り始めをもっと速く／体の回転を先に">${esc(S.memo[k.k]||'')}</textarea></label>`).join('');
 }
 $('#memo').addEventListener('input',e=>{const el=e.target;if(!el.dataset.m)return;S.memo[el.dataset.m]=el.value;saveSession()});
-$('#thr').onchange=()=>{renderSum()};
+$('#thr').onchange=()=>{S.thr=$('#thr').value;saveSession();renderSum()};
 
 /* ---------- Excel ---------- */
 function xlsName(){return ((S.title||'動きの記録').replace(/[\\/:*?"<>|\s]+/g,'_'))+'_'+(S.date||new Date().toISOString().slice(0,10))}
 function sheetName(f,used){let n=(shortLabel(f)+'_'+f.fname.replace(/\.csv$/i,'')).replace(/[\\/:*?\[\]]/g,'').slice(0,31);let b=n,i=2;while(used.has(n))n=b.slice(0,28)+'_'+(i++);used.add(n);return n}
 function makeBook(withData){
   const wb=XLSX.utils.book_new();const R=rows();const thr=$('#thr').value;
-  const info=[['練習の名前',S.title||''],['日付',S.date||''],['山とみなす強さ',thr+'G以上（0.5秒以内の山は1つにまとめる）'],['作成','スクーミー 動きの波形 v'+VERSION],[],
+  const info=[['練習の名前',S.title||''],['日付',S.date||''],['山とみなす強さ',thr+'G以上（'+gapOf(+thr)+'秒以内の山は1つにまとめる）'],['作成','スクーミー 動きの波形 v'+VERSION],[],
     ['セット','名前','回数','つけた場所','動き','ファイル','記録の長さ（秒）','山の数','一番の強さ（G）','山の平均の強さ（G）','一番の回転（度/秒）','スイング時間の平均（ミリ秒）','運動量','1分あたりの運動量']];
   R.forEach(r=>info.push([r.set,r.name,r.trial,r.part,r.motion,r.f.fname,+r.dur.toFixed(2),r.n,+r.amax.toFixed(2),r.avg?+r.avg.toFixed(2):'',Math.round(r.wmax),r.sw==null?'':Math.round(r.sw*1000),+r.load.toFixed(2),+r.loadMin.toFixed(2)]));
   const ws=XLSX.utils.aoa_to_sheet(info);ws['!cols']=[8,14,6,10,10,14,14,8,14,16,16,18,10,14].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws,'まとめ');
@@ -561,7 +564,7 @@ window.addEventListener('beforeunload',()=>{put('session',S)});
 (async()=>{
   await idb();const s=await get('session');if(s)S=Object.assign(S,s);const fs=await get('files');if(fs&&fs.length){F=fs;fid=(await get('fid'))||Math.max(...F.map(f=>f.id))+1;active().slice(0,4).forEach(f=>V.sel.add(f.id))}
   if(!S.date)S.date=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
-  $('#sTitle').value=S.title;$('#sDate').value=S.date;renderPeople();
+  $('#sTitle').value=S.title;$('#sDate').value=S.date;if(S.thr)$('#thr').value=S.thr;renderPeople();
   if(F.length)toast('前回のファイル'+F.length+'件を戻しました');
 })();
 </script>
